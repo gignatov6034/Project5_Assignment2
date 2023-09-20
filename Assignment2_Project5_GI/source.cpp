@@ -3,6 +3,13 @@
 #include <vector>
 #include <string>
 
+//Example Macro using compiler directives
+#ifdef _DEBUG
+#define LOG(x) std::cout << "MACRO: " << x << endl;
+#else
+#define LOG(x)
+#endif // _DEBUG
+
 using namespace std;
 
 //This struct keeps information about students: first and last names
@@ -24,7 +31,7 @@ int main()
 
     vector<studentData> studentDataVector;  
 
-    studentData studentData;                //Student struct to temporary keep the info from each line
+    studentData studentDataTemp;                //Student struct to temporary keep the info from each line
 
     string line;                            //Represents a line from a file
 
@@ -39,10 +46,10 @@ int main()
         {
             if (lineNum > 1)
             {
-                studentData.firstName = line.substr(0, commaPosition);
-                studentData.lastName = line.substr(commaPosition + 1);
+                studentDataTemp.firstName = line.substr(0, commaPosition);
+                studentDataTemp.lastName = line.substr(commaPosition + 1);
 
-                studentDataVector.push_back(studentData);
+                studentDataVector.push_back(studentDataTemp);
             }
         }
     }
@@ -51,6 +58,14 @@ int main()
 
     //Close the file
     inFile.close();
+
+    // Display the student data in debug mode only
+#ifdef _DEBUG
+    for (const studentData& studentData : studentDataVector) 
+    {
+        std::cout << "First Name: " << studentData.firstName << ", Last Name: " << studentData.lastName << '\n';
+    }
+#endif
 
     return 0; 
 }
