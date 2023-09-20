@@ -3,31 +3,46 @@
 #include <vector>
 #include <string>
 
-//Example Macro using compiler directives
-#ifdef _DEBUG
-#define LOG(x) std::cout << "MACRO: " << x << endl;
-#else
-#define LOG(x)
-#endif // _DEBUG
-
 using namespace std;
 
+//Dependig on the compiler directives, chose the approptiate struct
+#ifdef PRE_RELEASE
 //This struct keeps information about students: first and last names
+struct studentData {
+    string lastName;
+    string firstName;
+    string email;
+};
+#else 
 struct studentData {
     string firstName;
     string lastName;
 };
+#endif
 
 int main() 
 {
-    //open the file 
+    //If in pre-release, then open the file that contains email along with first and last name, otherwise 
+    //the file without email information 
+#ifdef PRE_RELEASE
+    cout << "Running pre-release version\n";
+    ifstream inFile("Resource Files/StudentData_Emails1.txt");
+
+    //Check if the file is open
+    if (!inFile) {
+        cerr << "Unable to open file StudentData_Emails1.txt";
+        return 1;
+    }
+#else
+    cout << "Running standard version\n";
     ifstream inFile("Resource Files/StudentData.txt");
 
     //Check if the file is open
     if (!inFile) {
         cerr << "Unable to open file StudentData.txt";
-        return 1; 
+        return 1;
     }
+#endif
 
     vector<studentData> studentDataVector;  
 
@@ -39,17 +54,31 @@ int main()
 
     while (getline(inFile, line)) {
         lineNum++; //Increase the number by 1 each iteration; 
-        
+
         size_t commaPosition = line.find(','); //Find the position of a comma that separates the first and last names
+
+#ifdef PRE_RELEASE
+        size_t commaPositionSecond = line.find(',', commaPosition + 1);
+#endif
 
         if (commaPosition != string::npos) //Check if no comma is present in the line
         {
             if (lineNum > 1)
             {
-                studentDataTemp.firstName = line.substr(0, commaPosition);
-                studentDataTemp.lastName = line.substr(commaPosition + 1);
+                //If in pre-release mode, then execute the following:
+#ifdef PRE_RELEASE
+                studentDataTemp.lastName = line.substr(0, commaPosition);
+                studentDataTemp.firstName = line.substr(commaPosition + 2, commaPositionSecond - commaPosition - 2);
+                studentDataTemp.email = line.substr(commaPositionSecond + 1);
 
-                studentDataVector.push_back(studentDataTemp);
+                studentDataVector.push_back(studentDataTemp); //Push the data to the vector
+
+#else           //If in standard mode, then this code otherwise: 
+                studentDataTemp.lastName = line.substr(0, commaPosition);
+                studentDataTemp.firstName = line.substr(commaPosition + 2);
+
+                studentDataVector.push_back(studentDataTemp); //Push the data to the vector
+#endif
             }
         }
     }
@@ -63,10 +92,13 @@ int main()
 #ifdef _DEBUG
     for (const studentData& studentData : studentDataVector) 
     {
-        std::cout << "First Name: " << studentData.firstName << ", Last Name: " << studentData.lastName << '\n';
+        cout << "Last Name: " << studentData.lastName << ", First Name: " << studentData.firstName;
+    #ifdef PRE_RELEASE
+        cout << ", Email: " << studentData.email; // Print email in pre-release mode
+    #endif
+        cout << '\n';
     }
 #endif
-
 
     return 0; 
 }
